@@ -70,13 +70,28 @@ const RestaurantDishes = ({ dishes, onDataDelete, setOnDataDelete }) => {
   }
 
   const handleDelete = (dish_id) => {
-    console.log("handleDelte", dish_id)
-    fetch(backendURL + "/restaurant/delete/" + dish_id, {
-      method: "DELETE"
-    }).then(response => {
-      console.log("fetch delete response", response)
-      setOnDataDelete(!onDataDelete)
-    })
+    console.log("handleDelete", dish_id)
+
+    const token = JSON.parse(localStorage.getItem("accessToken"))
+    axios.defaults.headers.common['authorization'] = token
+    axios.defaults.withCredentials = true;
+
+    const url = backendURL + "/restaurant/delete/" + dish_id
+    axios.delete(url)
+        .then( response => {
+          console.log("fetch delete response", response)
+        setOnDataDelete(!onDataDelete)
+        })
+        .catch( err => {
+          console.lof("Delete error=",err)
+        })
+
+    // fetch(, {
+    //   method: "DELETE"
+    // }).then(response => {
+    //   console.log("fetch delete response", response)
+    //   setOnDataDelete(!onDataDelete)
+    // })
 
     console.log("Delete Success")
   }
@@ -111,7 +126,7 @@ const RestaurantDishes = ({ dishes, onDataDelete, setOnDataDelete }) => {
       name : dish.name,
       ingredients : dish.ingredients,
       price : dish.price,
-      id : dish.id,
+      id : dish._id,
       category : dish.category,
       description : dish.description,
       type: dish.type,
@@ -184,10 +199,11 @@ const RestaurantDishes = ({ dishes, onDataDelete, setOnDataDelete }) => {
 
 
   const handleEditSubmit = () => {
-    console.log("submit", editData)
+    console.log("Edit submit", editData)
     const url = backendURL + "/restaurant/edit/dish"
     const token = getToken()
     axios.defaults.headers.common['authorization'] = token
+    
     axios.post(url, editData)
       .then( response => {
         Swal.fire({
@@ -225,7 +241,7 @@ const RestaurantDishes = ({ dishes, onDataDelete, setOnDataDelete }) => {
           </TableHead>
           <TableBody>
             {dishes.map(dish => (
-              <StyledTableRow key={dish.id}>
+              <StyledTableRow key={dish._id}>
                 <StyledTableCell component="th" scope="row">
                   {dish.name}
                 </StyledTableCell>
@@ -246,7 +262,7 @@ const RestaurantDishes = ({ dishes, onDataDelete, setOnDataDelete }) => {
                 <StyledTableCell align="left">
                   <Fab color="primary" height="24px" width="24px"
                     aria-label="Edit" className={classes.fab}
-                    onClick={(e) => handleDelete(dish.id)}
+                    onClick={(e) => handleDelete(dish._id)}
                   >
                     <DeleteIcon />
 

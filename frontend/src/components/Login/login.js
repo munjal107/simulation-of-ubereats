@@ -60,11 +60,11 @@ const Login = (props) => {
           if (response.data.accessToken) {
             console.log("session token", response.data.accessToken)
             localStorage.setItem("accessToken", JSON.stringify(response.data.accessToken));
-            localStorage.setItem("userid", JSON.stringify(response.data.data.id));
+            localStorage.setItem("userid", JSON.stringify(response.data.data._id));
             localStorage.setItem("user", JSON.stringify(response.data.data));
             localStorage.setItem("type", JSON.stringify(response.data.data.type));
             if(response.data.data.type === 'restaurant'){
-              localStorage.setItem("restaurant_id", JSON.stringify(response.data.data.Restaurant.id));
+              localStorage.setItem("restaurant_id", JSON.stringify(response.data.data.Restaurant._id));
               // let redirectVar2 = <Redirect to="/restaurantDashboard" />
               let responseVar = <div className="alert alert-success" role="alert">Success</div>
 

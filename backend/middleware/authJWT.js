@@ -2,6 +2,10 @@ var jwt = require('jsonwebtoken');
 var config = require('../config/auth.config')
 const db = require('../models');
 
+const mongoose = require("mongoose")
+const User = require("../models/user")
+const Restaurant = require("../models/restaurant")
+
 const accessTokenSecret = config.secret
 
 const verifyToken =  (req, res, next) => {
@@ -24,15 +28,31 @@ const verifyToken =  (req, res, next) => {
             }
             // console.log("user", decoded)
             try{
-                var user = await db.User.findOne(
-                    {  
-                    where: { 
-                      email: decoded.email
-                    }, include: db.Restaurant
-                })
+                console.log("decoded id", decoded.id)
+                var user = await User.findOne({
+                    _id : decoded.id
+                }).exec()
+                // console.log("decoded user", user)
+
                 if (!user) {
                     return res.status(401).send({ message: "Unauthorized!! User not found." });
                   }else{  
+
+                    if(user.type === "restaurant"){
+                        console.log("inside decode rest..")
+                        const rest_obj = await Restaurant.findOne({
+                            userId : decoded.id
+                        }).exec()
+
+                        console.log("rest_obj--", rest_obj)
+                        user = {
+                            ...user._doc,
+                            Restaurant: rest_obj
+                        }
+                        // user['Restaurant'] = rest_obj
+                    }
+
+                    
                     req.user = user;
             }
             }catch(err){

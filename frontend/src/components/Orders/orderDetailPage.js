@@ -88,7 +88,8 @@ const OrderDetailPage = (props) => {
   const [orderDetails, setOrderDetails] = useState({
     OrderedDishes:[]
   })
-  
+  const [isPending, setIsPending] = useState(false)
+  const [isStatusChanged, setIsStatusChanged] = useState(false)
   const url = backendURL + `/restaurant/getOrder?id=${id}`
   console.log("URL:", url)
   // const { error, isPending, data: orderDetails } = useFetch(url)
@@ -101,8 +102,17 @@ const OrderDetailPage = (props) => {
 
      axios.get(url)
       .then(response => {
+        const temp = response.data.data
         console.log("Axios response...", response.data)
-        setOrderDetails(response.data)
+        setOrderDetails(response.data.data)
+
+        if(temp.orderStatus === "pending" || temp.orderStatus.toLowerCase() === "preparing"){
+          setIsPending(true)
+        }else{
+          setIsPending(false)
+        }
+
+
         console.log("Axios response...orderDetails", orderDetails)
 
       })
@@ -114,8 +124,25 @@ const OrderDetailPage = (props) => {
         abortController.abort()
       }
 
-  }, [])
+  }, [isStatusChanged])
 
+  const handleSubmit = () => {
+    console.log("Inside Cancel Order Handle Submit")
+    const url = backendURL + `/restaurant/order/cancel?id=${id}`
+
+    const token = getToken()
+    axios.defaults.headers.common['authorization'] = token
+
+    axios.get(url)
+      .then( response => {
+        console.log("hello")
+        // setIsPending(false)
+        setIsStatusChanged(!isStatusChanged)
+      })
+      .catch( err => {
+        console.log("cancel order Error => ", err)
+      })
+  }
 
 
 
@@ -169,17 +196,25 @@ const OrderDetailPage = (props) => {
           </Paper>
           <br />
           <Typography variant="h6" component="h2">
-            Order Status - {orderDetails.orderStatus}
+            Order Status - <span style={{color:"green"}}> {orderDetails.orderStatus} </span>
           </Typography>
 
           <Typography variant="h6" component="h2">
-            Delivery Location - {orderDetails.deliveryLocation}
+            {orderDetails.deliveryType} Location - {orderDetails.deliveryLocation}
+          </Typography>
+
+          <Typography variant="h6" component="h2">
+            Additional Instruction - <span style={{color:"red"}}> {orderDetails.note} </span>
           </Typography>
 
         </CardContent>
         {/* <CardActions>
         <Button size="small">Learn More</Button>
       </CardActions> */}
+      {
+        isPending &&
+        <button onClick={handleSubmit} style={{ margin: "10px",}} type="button" class="btn btn-outline-primary">Cancel Order</button>        
+      }
       </Card>
 
     </div>

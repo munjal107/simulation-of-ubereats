@@ -2,6 +2,7 @@ const express = require('express')
 const restaurantController = require("../controllers/restaurantController")
 const verifyToken = require('../middleware/authJWT')
 
+
 const router = express.Router();
 
 // add dish by restaurant owner
@@ -9,7 +10,8 @@ router.post('/add/dish',verifyToken, restaurantController.add_dish)
 //edit dish by rest owner
 router.post('/edit/dish',verifyToken, restaurantController.edit_dish)
 // update rest personal info - currently unused
-router.post('/update/info',verifyToken, restaurantController.update_info)
+// router.post('/update/info',verifyToken, restaurantController.update_info)
+
 // custoemer uses to show list of available dishes in a particular rest.
 // and also used by restaurant
 router.get('/getDishes',verifyToken, restaurantController.get_dishes)
@@ -32,5 +34,8 @@ router.post('/getSearchResult',verifyToken, restaurantController.get_searchResul
 
 router.get('/prevorders',verifyToken, restaurantController.get_prevorders)
 
+router.get('/order/cancel',verifyToken, restaurantController.cancel_order)
+
+router.get("/get/restinfo", restaurantController.rest_info)
 
 module.exports = router;

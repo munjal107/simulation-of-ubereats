@@ -54,7 +54,7 @@ export const userSignup = (data) => {
 export  const validateUserLogin = (data) => {
     return (dispatch) => {
         axios.defaults.withCredentials = true;
-        console.log(" validateUserLogin data")
+        console.log(" validateUserLogin data", data)
         return axios.post(backendURL + "/user/login", data)
                 .then( (response) => {
                     console.log("User login response", response)

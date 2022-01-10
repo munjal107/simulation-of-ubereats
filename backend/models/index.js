@@ -6,8 +6,8 @@ const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 
 // default env is 'development'
-// const dev_env = process.env.NODE_ENV || 'development';
-const dev_env = process.env.NODE_ENV || 'production';
+const dev_env = process.env.NODE_ENV || 'development';
+// const dev_env = process.env.NODE_ENV || 'production';
 
 
 // get db config file

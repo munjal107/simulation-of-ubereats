@@ -119,6 +119,7 @@ const RestaurantDetails = (props) => {
     const handleAddToCart = (dish_id) => {
         console.log("dish id", dish_id, id)
         console.log("rest_id id", props.rest_id)
+        console.log("cartQty ->", cartQty)
 
         if (props.rest_id === -1) {
 
@@ -144,7 +145,7 @@ const RestaurantDetails = (props) => {
                 })
             } else {
                 console.log("update card")
-                props.addToCart(id, dish_id, true)
+                props.addToCart(id, dish_id, cartQty, true)
                 setCurrDish({})
                 SetCartQty(0)
                 setShowModal(false)
@@ -161,6 +162,8 @@ const RestaurantDetails = (props) => {
         const data = {
             rest_id: id
         }
+
+        console.log("Add to fav rest id -> ", data)
         const url = backendURL + "/customer/fav/add"
         axios.post(url, data)
             .then(response => {
@@ -260,7 +263,7 @@ const RestaurantDetails = (props) => {
                                     <div class="card-header">
                                         {dish.type}
                                     </div>
-                                    <img class="card-img-top" src={`${backendURL}${dish.image}`} alt="Card image cap" />
+                                    <img class="card-img-top" src={dish.image} width="285" height="240" alt="Card image cap" />
                                     <div class="card-body">
                                         <h5 class="card-title">{dish.name}</h5>
                                         <h6 class="card-subtitle mb-2 text-muted"><b>Ingredients</b> - {dish.ingredients}</h6>
@@ -292,7 +295,7 @@ const RestaurantDetails = (props) => {
                                         <div class="card-header">
                                             {dish.type}
                                         </div>
-                                        <img class="card-img-top"  src={`${backendURL}${dish.image}`} alt="Card image cap" />
+                                        <img class="card-img-top"  src={dish.image} width="285" height="240" alt="Card image cap" />
                                         <div class="card-body">
                                             <h5 class="card-title">{dish.name}</h5>
                                             <h6 class="card-subtitle mb-2 text-muted"><b>Ingredients</b> - {dish.ingredients}</h6>
@@ -348,7 +351,7 @@ const RestaurantDetails = (props) => {
                     <Button1 variant="secondary" onClick={handleCloseCart}>
                         Cancel
                     </Button1>
-                    <Button1 variant="primary" onClick={e => { handleAddToCart(currDish.id) }}>
+                    <Button1 variant="primary" onClick={e => { handleAddToCart(currDish._id) }}>
                         Add to Cart
                     </Button1>
                 </Modal.Footer>

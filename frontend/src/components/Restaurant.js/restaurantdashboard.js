@@ -32,7 +32,7 @@ const useStyles = makeStyles(theme => ({
 
 
 
-
+// Main function
 const RestaurantDashboard = (props) => {
   const abortController = new AbortController()
 
@@ -41,13 +41,15 @@ const RestaurantDashboard = (props) => {
   const [error, setError] = useState(null);
   const [onDataDelete, setOnDataDelete] = useState(false)
 
-  const rest_id = localStorage.getItem("restaurant_id")
+  const rest_id = JSON.parse(localStorage.getItem("restaurant_id"))
   // const { error, isPending, data: dishes } = useFetch(backendURL + `/restaurant/getDishes?id=${rest_id}` )
   const url = backendURL + `/restaurant/getDishes?id=${rest_id}`
   const token = getToken()
   axios.defaults.headers.common['authorization'] = token  
+  console.log("rest_id", rest_id)
   
   useEffect(() => {
+    console.log("URL => ", url)
     fetch(url, {
       headers: {
         'Authorization': token
@@ -97,8 +99,12 @@ const RestaurantDashboard = (props) => {
   var user = JSON.parse(localStorage.getItem("user"))
   console.log("PROFILE USER", user)
 
+  const [file, setFile] = useState()
 
-
+  const fileSelected = event => {
+    const file = event.target.files[0]
+    setFile(file)
+}
 
   var initialValues = {
     restaurantname: user.Restaurant.name,
@@ -113,7 +119,7 @@ const RestaurantDashboard = (props) => {
     restaurant_id: user.Restaurant.id,
   }
 
-
+  const [profilePic, setProfilePic] = useState(user.profile_picture)
 
 
   const dispatch = useDispatch();
@@ -193,7 +199,8 @@ const RestaurantDashboard = (props) => {
         },
         contact: values.contact,
         city: values.city,
-        address : values.address
+        address : values.address,
+        profile_picture : file
       }
       // console.log("inside on new submit:",new_user)
 
@@ -213,7 +220,7 @@ const RestaurantDashboard = (props) => {
           // console.log("error obj", error)
         })
         actions.setSubmitting(false)
-        actions.handleReset()
+       // actions.handleReset()
     },
 
 
@@ -226,7 +233,6 @@ const RestaurantDashboard = (props) => {
       console.log("PROFILE USER", user)
 
       initialValues = {
-
         restaurantname: user.Restaurant.name,
         description: user.Restaurant.description,
         city: user.city,
@@ -245,11 +251,12 @@ const RestaurantDashboard = (props) => {
 
 
   const getUserPic = () => {
-    if (!pic) {
-      return "none";
-    }
+    // if (!pic) {
+    //   return "none";
+    // }
 
-    return `url(${pic})`;
+    // return `url(${pic})`;
+    return `http://localhost:5500/${profilePic}`
   };
 
 
@@ -329,7 +336,6 @@ const RestaurantDashboard = (props) => {
                 <div
                   className="image-input image-input-outline"
                   id="kt_profile_avatar"
-
                 >
                   <div
                     className="image-input-wrapper"
@@ -345,7 +351,8 @@ const RestaurantDashboard = (props) => {
                     <i className="fa fa-pen icon-sm text-muted"></i>
                     <input
                       type="file"
-                      // name="pic"
+                      name="pic"
+                      onChange={fileSelected}
                       accept=".png, .jpg, .jpeg"
                     // {...formik.getFieldProps("pic")}
                     />

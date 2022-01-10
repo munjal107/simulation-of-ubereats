@@ -122,19 +122,31 @@ function RestaurantDashboard(props) {
 
     onSubmit: (values, actions) => {
       // console.log("inside on submit:",values)
+      // const new_user = {
+      //   ...user,
+      //   firstname : initialValues.firstname,
+      //   lastname : initialValues.lastname,
+      //   dob : initialValues.dob,
+      //   email  : initialValues.email,
+      //   contact : initialValues.contact,
+      //   city : initialValues.city,
+      //   state : initialValues.state,
+      //   country : initialValues.country,
+      //   address : initialValues.address
+      // }
       const new_user = {
         ...user,
-        firstname : initialValues.firstname,
-        lastname : initialValues.lastname,
-        dob : initialValues.dob,
-        email  : initialValues.email,
-        contact : initialValues.contact,
-        city : initialValues.city,
-        state : initialValues.state,
-        country : initialValues.country,
-        address : initialValues.address
+        firstname : values.firstname,
+        lastname : values.lastname,
+        dob : values.dob,
+        email  : values.email,
+        contact : values.contact,
+        city : values.city,
+        state : values.state,
+        country : values.country,
+        address : values.address
       }
-      // console.log("inside on new submit:",new_user)
+      console.log("inside on new submit:",new_user)
         
       dispatch(updateUserInfo(new_user))
         .then((response) => {

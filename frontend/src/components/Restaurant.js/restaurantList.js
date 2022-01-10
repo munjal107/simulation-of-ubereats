@@ -69,8 +69,8 @@ const RestaurantList = ({ user_loc, filterBy }) => {
                                 <div class="card-header">
                                     {rest.deliveryType}
                                 </div>
-                                <Link to={`/restaurant/${rest.id}`} style={{ textDecoration: "none", color: "#000000" }}>
-                                    <img class="card-ig-topm" src={`${backendURL}${rest.profile_picture}`} alt="Card image cap" />
+                                <Link to={`/restaurant/${rest._id}`} style={{ textDecoration: "none", color: "#000000" }}>
+                                    <img class="card-ig-topm" src={`${rest.profile_picture}`} alt="Card image cap"  width="285" height="240"/>
 
                                     <div class="card-body">
                                         <h5 class="card-title">{rest.name}</h5>

@@ -14,7 +14,7 @@ import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import { connect } from "react-redux"
-import { confirmOrder, resetCart } from '../../redux/actions/orders';
+import { confirmOrder, resetCart, updateOrderCart } from '../../redux/actions/orders';
 import { Redirect } from 'react-router';
 
 import FormControl from '@mui/material/FormControl'
@@ -27,7 +27,12 @@ import Checkbox from '@material-ui/core/Checkbox';
 import RestaurantDashboard from '../Restaurant.js/restaurantdashboard';
 import Swal from 'sweetalert2'
 
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import { IconButton } from "@material-ui/core"
 
+import backendURL from '../../config';
+import axios from 'axios';
 
 const StyledTableCell = withStyles(theme => ({
   head: {
@@ -91,19 +96,55 @@ const OrderConfirmation = (props) => {
   const bull = <span className={classes.bullet}>•</span>;
   console.log("props...", props.orders)
 
+  var rest_id = props.orders.rest_id
+  console.log("rest_id =>.", rest_id)
+
   const [redirectVar, setRedirectVar] = useState(null)
   const [delivery, setDelivery] = useState("delivery")
   const [isDelivery, setIsDelivery] = useState(true)
   const [checkedA, setCheckedA] = useState(true)
   const [locationValue, setLocationValue] = useState("")
   const [isOrder, setIsOrder] = useState(true)
+  const [note, setNote] = useState("")
+  const [isPickup, setIsPickup] = useState(false)
+  const [restObj, setRestObj] = useState({})
 
   useEffect(() => {
-    if(props.orders.no_of_items===0){
+
+    if(rest_id===-1 || rest_id==="-1"){
+      rest_id = "6190896b25beeb60a0d85147"
+    }
+    const url = backendURL + `/restaurant/get/restinfo?id=${rest_id}` 
+
+    axios.get(url)
+      .then( response => {
+        const temp = response.data.data
+        console.log("temp => ", temp)
+        setRestObj(temp)
+        if(temp.deliveryType == "pickup"){
+          console.log("pickup true")
+          setIsPickup(true)
+        }
+      })
+
+    if(props.orders.no_of_items === 0) {
       setIsOrder(false)
     }
   }, [isOrder])
 
+  const handleIncrement = (dish_id) => {
+    // const new_val = cartQty + 1
+    // SetCartQty(cartQty + 1)
+    console.log("dish_id", dish_id)
+    console.log("calling..")
+    props.updateOrderCart(dish_id, true)
+  }
+  const handleDecrement = (dish_id) => {
+    // const new_val = cartQty - 1 >= 0 ? cartQty - 1 : 0
+    // SetCartQty(new_val)
+    props.updateOrderCart(dish_id, false)
+
+  }
 
 
 
@@ -111,6 +152,7 @@ const OrderConfirmation = (props) => {
     console.log("cancel")
     props.resetCart()
     setIsOrder(false)
+    setNote("")
     setRedirectVar(<Redirect to="/customerDashboard" />)
   }
 
@@ -125,21 +167,30 @@ const OrderConfirmation = (props) => {
   }
 
   const handleSubmit = () => {
-    const data = {
-      delivery : delivery
+    console.log("inside order confirm submit")
+    var data = {
+      delivery: delivery,
+      note: note
     }
-    if(checkedA){
+    
+    
+    if (checkedA) {
       data.location = "default"
-    }else{
+    } else {
       data.location = locationValue
+    }
+
+    if(isPickup){
+      data.delivery = "pickup"
+      data.location = restObj.address
     }
     // console.log('hh', checkedA, delivery, locationValue, data)
     props.confirmOrder(data)
-      .then( response => {
-        console.log("confirmOrder",response)
-        const order_id = response.data.order_id
+      .then(response => {
+        console.log("confirmOrder", response)
+        const order_id = response.data.data._id
         setIsOrder(false)
-        
+
         Swal.fire({
           title: 'Order Placed Successfully!!',
           confirmButtonText: 'Ok',
@@ -147,13 +198,13 @@ const OrderConfirmation = (props) => {
           /* Read more about isConfirmed, isDenied below */
           if (result.isConfirmed) {
             setRedirectVar(<Redirect to={`orders/${order_id}`} />)
-          } 
+          }
         })
 
       })
-      .catch( err => {
+      .catch(err => {
         console.log("error", err)
-        
+
       })
   }
 
@@ -173,7 +224,7 @@ const OrderConfirmation = (props) => {
       <Card className={classes.card}>
         <CardContent>
           <Typography className={classes.title} color="textSecondary" gutterBottom>
-            <b>Restaurant Name - </b>
+            <b>Order From - <span style={{color:"green"}}>{restObj.name}</span> </b>
           </Typography>
           <Typography variant="h5" component="h2">
             Order Confirmation
@@ -195,8 +246,19 @@ const OrderConfirmation = (props) => {
                   <StyledTableRow>
                     <StyledTableCell component="th" scope="row">{dish}</StyledTableCell>
                     <StyledTableCell align="center">{props.orders.price[index]}</StyledTableCell>
-                    <StyledTableCell align="center">{props.orders.qty[index]}</StyledTableCell>
-                    <StyledTableCell align="center">{props.orders.qty[index] * props.orders.price[index]}</StyledTableCell>
+                    <StyledTableCell align="center">
+
+                    <IconButton onClick={(e) => { e.preventDefault(); handleIncrement(props.orders.dish_id[index])}} className={classes.button} aria-label="Delete">
+                        <AddIcon />
+                    </IconButton>
+                      
+                      {props.orders.qty[index]}
+
+                      <IconButton onClick={(e) => { e.preventDefault(); handleDecrement(props.orders.dish_id[index])}} className={classes.button} aria-label="Delete">
+                        <RemoveIcon />
+                      </IconButton>
+                    </StyledTableCell>
+                    <StyledTableCell align="center">{(props.orders.qty[index] * props.orders.price[index]).toFixed(2)}</StyledTableCell>
 
 
                   </StyledTableRow>
@@ -206,22 +268,22 @@ const OrderConfirmation = (props) => {
                 )
                 }
 
-        
+
 
                 <StyledTableRow>
-                <StyledTableCell/>
-              <StyledTableCell/>
+                  <StyledTableCell />
+                  <StyledTableCell />
                   <StyledTableCell align="right"><b>Tax</b></StyledTableCell>
                   <StyledTableCell align="center"><b>{props.orders.tax}%</b></StyledTableCell>
                 </StyledTableRow>
-                
+
                 <StyledTableRow>
-                <StyledTableCell/>
-              <StyledTableCell/>
-                  <StyledTableCell align="right"><b>Total11</b></StyledTableCell>
+                  <StyledTableCell />
+                  <StyledTableCell />
+                  <StyledTableCell align="right"><b>Total</b></StyledTableCell>
                   <StyledTableCell align="center"><b>
-                  
-                    {Math.round(props.orders.total*100)/100}</b></StyledTableCell>
+
+                    {Math.round(props.orders.total * 100) / 100}</b></StyledTableCell>
                 </StyledTableRow>
 
               </TableBody>
@@ -231,70 +293,108 @@ const OrderConfirmation = (props) => {
         </CardContent>
 
         {
-          isOrder && <div>
-          <FormControl sx={{ m: 1, minWidth: 120 }}>
-          <InputLabel id="demo-simple-select-standard-label"><b>Delivery Options</b></InputLabel>
-          <br />
-          <Select sx={{ m: 1, minWidth: 120 }}
-            label Id="demo-simple-select-helper-label"
-            id="demo-simple-select-helper"
-            label="Deliery"
-            value={delivery}
-            onChange={handleChange}
-          >
-            <MenuItem value="delivery">delivery</MenuItem>
-            <MenuItem value="pickup">pickup</MenuItem>
-          </Select>
-        </FormControl>
-        <br />
-        <div>
-          {
-            isDelivery &&
+          !isPickup && isOrder && <div>
+            <FormControl sx={{ m: 1, minWidth: 120 }}>
+              <InputLabel id="demo-simple-select-standard-label"><b>Delivery Options</b></InputLabel>
+              <br />
+              <Select sx={{ m: 1, minWidth: 120 }}
+                label Id="demo-simple-select-helper-label"
+                id="demo-simple-select-helper"
+                label="Deliery"
+                value={delivery}
+                onChange={handleChange}
+              >
+                <MenuItem value="delivery">delivery</MenuItem>
+                <MenuItem value="pickup">pickup</MenuItem>
+              </Select>
+            </FormControl>
+            <br />
             <div>
-              <Checkbox
-                checked={checkedA}
-                onChange={handleChecked('checkedA')}
-                value="default"
-                inputProps={{
-                  'aria-label': 'primary checkbox',
-                }}
-              />  - Delivery Location same as default address
+              {
+                isDelivery &&
+                <div>
+                  <Checkbox
+                    checked={checkedA}
+                    onChange={handleChecked('checkedA')}
+                    value="default"
+                    inputProps={{
+                      'aria-label': 'primary checkbox',
+                    }}
+                  />  - Delivery Location same as default address
 
-            </div>
-          }
-          {
-            !checkedA &&
-            <div>
+                </div>
+              }
+              {
+                !checkedA &&
+                <div>
+                  <TextField
+                    id="outlined-multiline-static"
+                    label="Enter Delivery Loc"
+                    multiline
+                    rows="4"
+                    defaultValue=""
+                    className={classes.textField}
+                    margin="normal"
+                    value={locationValue}
+                    onChange={handleLocationChange}
+                    variant="outlined"
+                  />
+                </div>
+              }
+
+
               <TextField
-                id="outlined-multiline-static"
-                label="Enter Delivery Loc"
-                multiline
-                rows="4"
-                defaultValue=""
-                className={classes.textField}
+                id="standard-full-width"
+                label="Note"
+                name="note"
+                style={{ margin: 8 }}
+                placeholder="Add a note for the store"
                 margin="normal"
-                value={locationValue}
-                onChange={handleLocationChange}
-                variant="outlined"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                onChange={(e) => { e.preventDefault(); setNote(e.target.value)}}
               />
-            </div>
-          }
 
-        </div>
-</div>
+            </div>
+          </div>
 
 
         }
 
-        
+        {
+          isPickup && 
+          <div>
+
+        <p><b>Pick-up address</b> - <spam style={{color:"red"}}>{restObj.address}</spam></p>
+          
+          <TextField
+                id="standard-full-width"
+                label="Note"
+                name="note"
+                style={{ margin: 8 }}
+                placeholder="Add a note for the store"
+                margin="normal"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                value={note}
+                onChange={(e) => { e.preventDefault(); setNote(e.target.value)}}
+              />
+
+          </div>
+          
+        }
+
+
 
         <CardActions className="float-right">
 
           <button onClick={handleCancel} style={{ margin: "10px" }} type="button" class="btn btn-outline-primary">Cancel</button>
-          { isOrder && 
+          {isOrder &&
             <div>
-               
-                <button onClick={handleSubmit} style={{ margin: "10px" }} type="button" class="btn btn-outline-success">Confirm Order</button>
+
+              <button onClick={handleSubmit} style={{ margin: "10px" }} type="button" class="btn btn-outline-success">Confirm Order</button>
 
             </div>
           }
@@ -314,7 +414,8 @@ const mapStatsToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     resetCart: () => dispatch(resetCart()),
-    confirmOrder: (delivery) => dispatch(confirmOrder(delivery))
+    confirmOrder: (delivery) => dispatch(confirmOrder(delivery)),
+    updateOrderCart: (rest_id, isInc) => dispatch(updateOrderCart(rest_id, isInc))
   }
 }
 

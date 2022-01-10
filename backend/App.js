@@ -3,10 +3,11 @@ const express = require('express');
 const userRoutes = require('./routes/userRoutes')
 const restaurantRoutes = require('./routes/restaurantRoutes')
 const customerRoutes = require('./routes/customerRoutes')
-const {sequelize, db} = require('./models');
+// const {sequelize, db} = require('./models');
 const cors = require('cors')
-const session = require('express-session');
+// const session = require('express-session');
 const config = require("./config/auth.config")
+const { getFileStream } = require("./middleware/S3")
 // const bodyParser = require('body-parser');
 const app = express();
 
@@ -18,12 +19,7 @@ const app = express();
 
 //use cors to allow cross origin resource sharing
 app.use(cors({ origin: config.frontendURL, credentials: true  }));
-// app.use(cors({ origin: 'http://localhost:3001', credentials: true  }));
 
-// async function sync() {
-//   await db.sequelize.sync({ foece: true });
-// }
-// sync().then((err) => console.log(err));
 
 // app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({ extended: true }));
@@ -31,15 +27,6 @@ app.use(express.static('public'));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// app.use(session({
-//   secret              : 'cmpe273_lab1',
-//   resave              : false, // Forces the session to be saved back to the session store, even if the session was never modified during the request
-//   saveUninitialized   : false, // Force to save uninitialized session to db. A session is uninitialized when it is new but not modified.
-//   duration            : 60 * 60 * 1000,    // Overall duration of Session : 30 minutes : 1800 seconds
-//   activeDuration      :  5 * 60 * 1000
-// }));
-
 
 
 // var verifyToken = require("./middleware/authJwt")
@@ -51,6 +38,17 @@ app.use(express.urlencoded({ extended: true }));
 //   })
 // })
 
+
+app.get('/images/:key', (req, res) => {
+  console.log("iamge params::",req.params)
+  const key = req.params.key
+  const readStream = getFileStream(key)
+
+  readStream.pipe(res)
+})
+
+const mongoose = require('mongoose');
+
 app.use("/user", userRoutes)
 app.use("/restaurant", restaurantRoutes)
 app.use("/customer", customerRoutes)
@@ -61,6 +59,12 @@ app.use("/customer", customerRoutes)
 //   })
 // })
 
+
+const main = async () => {
+  const dbURI = `your mongodb uri`
+  await mongoose.connect(dbURI)
+}
+
 //start your server on port 5500
 const PORT = 5500;
 app.listen(PORT, async () => {
@@ -68,9 +72,11 @@ app.listen(PORT, async () => {
   
   // await sequelize.sync({force : true})
   // await sequelize.sync({alter : true})
-  await sequelize.sync()
+ // await sequelize.sync()
+  // console.log('\n\nMySQL Database Connected!')
 
-  console.log('\n\nDatabase Connected!')
+  main().then(() => console.log("MongoDB Database Connected..."));
+
 })
 
 

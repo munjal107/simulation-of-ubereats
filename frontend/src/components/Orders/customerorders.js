@@ -101,7 +101,7 @@ const CustomerOrders = (props) => {
     const [isUpdated, setIsUpdated] = useState(false)
     const [showModal, setShowModal] = useState(false)
     const [modalData, setModalData] = useState({
-        id: "",
+        _id: "",
         deliveryType: "",
         orderStatus: "",
         orderOptions: []
@@ -112,10 +112,11 @@ const CustomerOrders = (props) => {
         const token = getToken()
         axios.defaults.headers.common['authorization'] = token    
         const url = backendURL + `/restaurant/getorders?id=${restId}`
+        console.log("cust url.", url)
         axios.get(url)
             .then(response => {
                 console.log(response.data)
-                setAllOrders(response.data)
+                setAllOrders(response.data.data)
                 console.log("setAllOrders", allOrders)
             })
             .catch(err => {
@@ -126,14 +127,14 @@ const CustomerOrders = (props) => {
     const handleShowModal = (id, deliveryType, orderStatus) => {
         var new_opts = []
         if (deliveryType === 'delivery') {
-            new_opts = ["pending", "Order Received", "Preparing", "On the way", "Delivered"]
+            new_opts = ["pending", "Order Received", "Preparing", "On the way", "Delivered", "Order Cancelled"]
         } else {
-            new_opts = ["pending", "Order Received", "Preparing", "Pickup Ready", "Pickedup"]
+            new_opts = ["pending", "Order Received", "Preparing", "Pickup Ready", "Pickedup", "Order Cancelled"]
 
         }
         setModalData({
             ...modalData,
-            id: id,
+            _id: id,
             deliveryType: deliveryType,
             orderStatus: orderStatus,
             orderOptions: new_opts
@@ -158,7 +159,7 @@ const CustomerOrders = (props) => {
     }
 
     const handleSaveOrderStatus = () => {
-        console.log(modalData)
+        console.log("handleSaveOrderStatus", modalData)
         const token = getToken()
         axios.defaults.headers.common['authorization'] = token    
         const url = backendURL + "/restaurant/updateOrderStatus"
@@ -208,7 +209,10 @@ const CustomerOrders = (props) => {
                         {/* <option>{filter}</option> */}
                         <option value="none">None</option>
                         <option value="pending">New Order</option>
+                        <option value="Preparing">Preparing</option>
                         <option value="Delivered">Delivered</option>
+                        <option value="Order Cancelled">Canceled Orders</option>
+
                         {/* <option value="none">Cancelled Order</option> */}
                     </Form.Select>
 
@@ -229,23 +233,36 @@ const CustomerOrders = (props) => {
                             </TableHead>
                             <TableBody>
                                 {allOrders.map((order, index) => {
+                                    const isStatus = order.orderStatus === "Order Cancelled"? false: true
                                     if(filter==="none"){
                                         return (
                                 
                                             <StyledTableRow>
-                                                <StyledTableCell component="th" scope="row">{order.id}</StyledTableCell>
+                                                <StyledTableCell component="th" scope="row">{index+1}</StyledTableCell>
                                                 <StyledTableCell align="center">{order.deliveryType}</StyledTableCell>
                                                 <StyledTableCell align="center">{order.totalCost}</StyledTableCell>
                                                 <StyledTableCell align="center">{new Date(order.createdAt).toLocaleString()}</StyledTableCell>
                                                 <StyledTableCell align="center">{order.orderStatus}</StyledTableCell>
-                                                <StyledTableCell align="center">
-                                                    <Button onClick={(e) => handleShowModal(order.id,
+                                                
+                                                {
+                                                    isStatus && <StyledTableCell align="center">
+                                                    <Button onClick={(e) => handleShowModal(order._id,
                                                         order.deliveryType, order.orderStatus)} variant="contained" size="small" color="primary" className={classes.margin}>
                                                         Update
                                                     </Button>
                                                 </StyledTableCell>
+                                                }
+
+                                                {
+                                                    !isStatus && <StyledTableCell align="center">
+                                                    <Button disabled variant="contained" size="small" color="primary" className={classes.margin}>
+                                                        Update
+                                                    </Button>
+                                                </StyledTableCell>
+                                                }
+                                                
                                                 <StyledTableCell align="center">
-                                                    <Button onClick={(e) => handleShowUser(order.user_id)} variant="contained" size="small" color="primary" className={classes.margin}>
+                                                    <Button onClick={(e) => handleShowUser(order.userId)} variant="contained" size="small" color="primary" className={classes.margin}>
                                                         Show user
                                                     </Button>
                                                 </StyledTableCell>
@@ -259,19 +276,19 @@ const CustomerOrders = (props) => {
                                             if(order.orderStatus===filter) {
                                                 return (
                                                     <StyledTableRow>
-                                                    <StyledTableCell component="th" scope="row">{order.id}</StyledTableCell>
+                                                    <StyledTableCell component="th" scope="row">{index+1}</StyledTableCell>
                                                     <StyledTableCell align="center">{order.deliveryType}</StyledTableCell>
                                                     <StyledTableCell align="center">{order.totalCost}</StyledTableCell>
                                                     <StyledTableCell align="center">{new Date(order.createdAt).toLocaleString()}</StyledTableCell>
                                                     <StyledTableCell align="center">{order.orderStatus}</StyledTableCell>
                                                     <StyledTableCell align="center">
-                                                        <Button onClick={(e) => handleShowModal(order.id,
+                                                        <Button onClick={(e) => handleShowModal(order._id,
                                                             order.deliveryType, order.orderStatus)} variant="contained" size="small" color="primary" className={classes.margin}>
                                                             Update
                                                         </Button>
                                                     </StyledTableCell>
                                                     <StyledTableCell align="center">
-                                                        <Button onClick={(e) => handleShowUser(order.user_id)} variant="contained" size="small" color="primary" className={classes.margin}>
+                                                        <Button onClick={(e) => handleShowUser(order.userId)} variant="contained" size="small" color="primary" className={classes.margin}>
                                                             Show user
                                                         </Button>
                                                     </StyledTableCell>
@@ -303,9 +320,16 @@ const CustomerOrders = (props) => {
                         {
                             modalData.orderOptions.map((opt, index) => {
                                 if (opt != modalData.orderStatus) {
-                                    return (
-                                        <option value={opt}>{opt}</option>
-                                    )
+                                    if(opt==="Order Cancelled"){
+                                        return (
+                                            <option value={opt}>cancel order</option>
+                                        )
+                                    }else{
+                                        return (
+                                            <option value={opt}>{opt}</option>
+                                        )
+                                    }
+                                    
                                 }
 
                             })
