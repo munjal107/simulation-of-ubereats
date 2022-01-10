@@ -5,8 +5,7 @@ const mongoose = require('mongoose');
 
 // async function connectToDB(){
 //     const database_name = "mongo-1"
-//     const dbURI = `mongodb+srv://munjal:test1234@cluster0.wu6mx.mongodb.net/${database_name}?retryWrites=true&w=majority`
-    
+
 //     await mongoose.connect(dbURI, {
 //         useNewUrlParser: true,
 //         useUnifiedTopology: true
@@ -82,8 +81,7 @@ function handleTopicRequest(topic_name, fname) {
 // handleTopicRequest("post_book",Books)
 
 const main = async () => {
-    const dbURI = `mongodb+srv://munjal:test1234@cluster0.wu6mx.mongodb.net/mongo-1?retryWrites=true&w=majority`
-    // await mongoose.connect("mongodb+srv://admin:z3vCyJcwgjR1PbZs@cluster0.0lry6.mongodb.net/UberEats?retryWrites=true&w=majority");
+    const dbURI = `uri`
     await mongoose.connect(dbURI)
   }
   
